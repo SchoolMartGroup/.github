@@ -1,8 +1,8 @@
-# SchoolMart — Local Development Setup
+# School Bajar — Local Development Setup
 
-Run the full SchoolMart stack on your laptop: backend, desktop, and all three mobile apps.
+Run the full School Bajar stack on your laptop: backend, desktop, and all three mobile apps.
 
-**Project root:** `SchoolMart/`
+**Project root:** `SchoolMartGroup/`
 
 | Service | URL |
 |---------|-----|
@@ -50,7 +50,7 @@ Fix any issues (Android licenses: `flutter doctor --android-licenses`).
 ## 2. Open the project
 
 ```bash
-cd ~/Desktop/SchoolMart
+cd ~/Desktop/SchoolMartGroup
 ```
 
 ---
@@ -59,39 +59,39 @@ cd ~/Desktop/SchoolMart
 
 ### 3.1 Environment file
 
-`backend/.env` already exists. For Docker, the DB host is overridden to `db` in `docker-compose.yml`.
+`schoolbajar-backend/.env` already exists. For Docker, the DB host is overridden to `db` in `docker-compose.yml`.
 
 Minimum for local MVP (maps/push/payments optional at first):
 
 ```env
-SCHOOLMART_SECRET_KEY=dev-secret-key-change-in-production
-SCHOOLMART_DEBUG=True
-SCHOOLMART_ALLOWED_HOSTS=localhost,127.0.0.1,web,0.0.0.0
-SCHOOLMART_DB_NAME=schoolmart
-SCHOOLMART_DB_USER=schoolmart
-SCHOOLMART_DB_PASSWORD=schoolmart
-SCHOOLMART_DB_HOST=localhost
-SCHOOLMART_DB_PORT=5432
-SCHOOLMART_REDIS_URL=redis://localhost:6379/0
-SCHOOLMART_CORS_ALLOWED_ORIGINS=http://localhost:3000,http://localhost:5173,http://localhost:1420
-SCHOOLMART_OTP_BYPASS_CODE=000000
+SCHOOLBAJAR_SECRET_KEY=dev-secret-key-change-in-production
+SCHOOLBAJAR_DEBUG=True
+SCHOOLBAJAR_ALLOWED_HOSTS=localhost,127.0.0.1,web,0.0.0.0
+SCHOOLBAJAR_DB_NAME=schoolbajar
+SCHOOLBAJAR_DB_USER=schoolbajar
+SCHOOLBAJAR_DB_PASSWORD=schoolbajar
+SCHOOLBAJAR_DB_HOST=localhost
+SCHOOLBAJAR_DB_PORT=5432
+SCHOOLBAJAR_REDIS_URL=redis://localhost:6379/0
+SCHOOLBAJAR_CORS_ALLOWED_ORIGINS=http://localhost:3000,http://localhost:5173,http://localhost:1420
+SCHOOLBAJAR_OTP_BYPASS_CODE=000000
 
 # Optional — add when testing maps/routing
-SCHOOLMART_GOOGLE_MAPS_SERVER_KEY=
+SCHOOLBAJAR_GOOGLE_MAPS_SERVER_KEY=
 
 # Optional — add when testing Cashfree
-SCHOOLMART_CASHFREE_APP_ID=
-SCHOOLMART_CASHFREE_SECRET_KEY=
-SCHOOLMART_CASHFREE_ENV=SANDBOX
+SCHOOLBAJAR_CASHFREE_APP_ID=
+SCHOOLBAJAR_CASHFREE_SECRET_KEY=
+SCHOOLBAJAR_CASHFREE_ENV=SANDBOX
 
 # Optional — add when testing push from server
-SCHOOLMART_FIREBASE_CREDENTIALS_PATH=
+SCHOOLBAJAR_FIREBASE_CREDENTIALS_PATH=
 ```
 
 ### 3.2 Start backend (Docker)
 
 ```bash
-cd backend
+cd schoolbajar-backend
 docker compose up --build -d
 ```
 
@@ -129,7 +129,7 @@ Expected services: `db`, `redis`, `web` (port 8000), `daphne` (port 8001), `cele
 ### 3.6 Stop backend
 
 ```bash
-cd backend
+cd schoolbajar-backend
 docker compose down
 ```
 
@@ -168,7 +168,7 @@ Create a Google Cloud project and enable:
 
 | Where | Key type | Variable |
 |-------|----------|----------|
-| Backend `.env` | Server key (IP restricted) | `SCHOOLMART_GOOGLE_MAPS_SERVER_KEY` |
+| Backend `.env` | Server key (IP restricted) | `SCHOOLBAJAR_GOOGLE_MAPS_SERVER_KEY` |
 | Flutter Android | Android key | `AndroidManifest.xml` or `local.properties` |
 | Flutter iOS | iOS key | `AppDelegate.swift` |
 | Desktop `.env` | Browser key | `VITE_GOOGLE_MAPS_JS_KEY` |
@@ -182,7 +182,7 @@ Create a Google Cloud project and enable:
 ### 6.1 Setup
 
 ```bash
-cd desktop/schoolmart_desktop
+cd schoolbajar-desktop
 cp .env.example .env   # skip if .env already exists
 npm install
 ```
@@ -221,11 +221,11 @@ npm run tauri:dev
 ### 7.1 Install dependencies (each app once)
 
 ```bash
-cd packages/schoolmart_core && flutter pub get && cd ../..
+cd schoolbajar-core && flutter pub get && cd ..
 
-cd apps/schoolmart_admin && flutter pub get && cd ../..
-cd apps/schoolmart_partner && flutter pub get && cd ../..
-cd apps/schoolmart_customer && flutter pub get && cd ../..
+cd schoolbajar-admin && flutter pub get && cd ..
+cd schoolbajar-partner && flutter pub get && cd ..
+cd schoolbajar-customer && flutter pub get && cd ..
 ```
 
 ### 7.2 API URL by device
@@ -243,16 +243,16 @@ Find LAN IP:
 hostname -I | awk '{print $1}'
 ```
 
-For physical phone, add your LAN IP to `SCHOOLMART_ALLOWED_HOSTS` in `backend/.env` and restart:
+For physical phone, add your LAN IP to `SCHOOLBAJAR_ALLOWED_HOSTS` in `schoolbajar-backend/.env` and restart:
 
 ```bash
-cd backend && docker compose restart web daphne
+cd schoolbajar-backend && docker compose restart web daphne
 ```
 
 ### 7.3 Run Admin app
 
 ```bash
-cd apps/schoolmart_admin
+cd schoolbajar-admin
 flutter run \
   --dart-define=API_BASE_URL=http://10.0.2.2:8000/api/v1 \
   --dart-define=WS_BASE_URL=ws://10.0.2.2:8001
@@ -261,7 +261,7 @@ flutter run \
 ### 7.4 Run Partner app
 
 ```bash
-cd apps/schoolmart_partner
+cd schoolbajar-partner
 flutter run \
   --dart-define=API_BASE_URL=http://10.0.2.2:8000/api/v1 \
   --dart-define=WS_BASE_URL=ws://10.0.2.2:8001
@@ -272,12 +272,12 @@ Gradle uses an isolated cache automatically (via `android/gradlew`) so you do no
 ### 7.5 Run Customer app
 
 ```bash
-cd apps/schoolmart_customer
+cd schoolbajar-customer
 flutter run \
   --dart-define=API_BASE_URL=http://10.0.2.2:8000/api/v1 \
   --dart-define=WS_BASE_URL=ws://10.0.2.2:8001 \
   --dart-define=SUPPORT_PHONE=+919876543210 \
-  --dart-define=SHOP_UPI_ID=schoolmart@upi
+  --dart-define=SHOP_UPI_ID=schoolbajar@upi
 ```
 
 ---
@@ -287,16 +287,16 @@ flutter run \
 Apps run **without** Firebase. Push is skipped until configured.
 
 1. Create Firebase project
-2. Add Android/iOS apps per package (`com.schoolmart.admin`, `com.schoolmart.partner`, `com.schoolmart.customer`)
+2. Add Android/iOS apps per package (`com.schoolbajar.admin`, `com.schoolbajar.partner`, `com.schoolbajar.customer`)
 3. Place `google-services.json` / `GoogleService-Info.plist`
-4. Backend: set `SCHOOLMART_FIREBASE_CREDENTIALS_PATH` to service account JSON
+4. Backend: set `SCHOOLBAJAR_FIREBASE_CREDENTIALS_PATH` to service account JSON
 5. Restart celery-worker: `docker compose restart celery-worker`
 
 ---
 
 ## 9. Optional: Cashfree (online payments)
 
-1. Add Cashfree sandbox App ID + Secret Key to `backend/.env`
+1. Add Cashfree sandbox App ID + Secret Key to `schoolbajar-backend/.env`
 2. Restart: `docker compose restart web celery-worker`
 3. Point Cashfree webhook to `POST /api/v1/payments/webhook/cashfree/`
 4. Test in Customer app checkout
@@ -311,33 +311,33 @@ Open **6 terminals**:
 
 ```bash
 # Terminal 1 — Backend
-cd ~/Desktop/SchoolMart/backend
+cd ~/Desktop/SchoolMartGroup/schoolbajar-backend
 docker compose up
 
 # Terminal 2 — Desktop
-cd ~/Desktop/SchoolMart/desktop/schoolmart_desktop
+cd ~/Desktop/SchoolMartGroup/schoolbajar-desktop
 npm run dev
 
 # Terminal 3 — Admin app
-cd ~/Desktop/SchoolMart/apps/schoolmart_admin
+cd ~/Desktop/SchoolMartGroup/schoolbajar-admin
 flutter run \
   --dart-define=API_BASE_URL=http://10.0.2.2:8000/api/v1 \
   --dart-define=WS_BASE_URL=ws://10.0.2.2:8001
 
 # Terminal 4 — Partner app
-cd ~/Desktop/SchoolMart/apps/schoolmart_partner
+cd ~/Desktop/SchoolMartGroup/schoolbajar-partner
 flutter run \
   --dart-define=API_BASE_URL=http://10.0.2.2:8000/api/v1 \
   --dart-define=WS_BASE_URL=ws://10.0.2.2:8001
 
 # Terminal 5 — Customer app
-cd ~/Desktop/SchoolMart/apps/schoolmart_customer
+cd ~/Desktop/SchoolMartGroup/schoolbajar-customer
 flutter run \
   --dart-define=API_BASE_URL=http://10.0.2.2:8000/api/v1 \
   --dart-define=WS_BASE_URL=ws://10.0.2.2:8001
 
 # Terminal 6 — Watch logs (optional)
-cd ~/Desktop/SchoolMart/backend
+cd ~/Desktop/SchoolMartGroup/schoolbajar-backend
 docker compose logs -f web daphne celery-worker
 ```
 
@@ -443,10 +443,10 @@ Run Admin Fleet + Desktop Admin Fleet + Customer tracking at the same time:
 ### Static analysis
 
 ```bash
-cd apps/schoolmart_admin && flutter analyze
-cd ../schoolmart_partner && flutter analyze
-cd ../schoolmart_customer && flutter analyze
-cd ../../desktop/schoolmart_desktop && npm run build
+cd schoolbajar-admin && flutter analyze
+cd ../schoolbajar-partner && flutter analyze
+cd ../schoolbajar-customer && flutter analyze
+cd ../schoolbajar-desktop && npm run build
 ```
 
 ---
@@ -484,7 +484,7 @@ cd ../../desktop/schoolmart_desktop && npm run build
 
 | Problem | Fix |
 |---------|-----|
-| `Truncated class file` / Gradle build fails | Corrupted `~/.gradle` cache. Run `./scripts/run-mobile-app.sh partner` or `export GRADLE_USER_HOME=/tmp/gradle-schoolmart-$(whoami)` before `flutter run`. Full reset: `./scripts/repair-android-build.sh partner` |
+| `Truncated class file` / Gradle build fails | Corrupted `~/.gradle` cache. Run `./scripts/run-mobile-app.sh partner` or `export GRADLE_USER_HOME=/tmp/gradle-schoolbajar-$(whoami)` before `flutter run`. Full reset: `./scripts/repair-android-build.sh partner` |
 | `Connection refused` on mobile | Use `10.0.2.2` (emulator) or LAN IP (phone), not `localhost` |
 | CORS error on desktop | Ensure `http://localhost:1420` in CORS; dev mode allows all origins |
 | Maps blank | Add Google API keys; enable billing on Google Cloud |
@@ -517,7 +517,7 @@ docker compose restart web daphne celery-worker
 - [API_CONTRACT.md](./API_CONTRACT.md) — all REST endpoints and WebSocket message formats
 - [ENV.example](./ENV.example) — full environment variable reference
 - App-specific READMEs:
-  - `apps/schoolmart_admin/README.md`
-  - `apps/schoolmart_partner/README.md`
-  - `apps/schoolmart_customer/README.md`
-  - `desktop/schoolmart_desktop/README.md`
+  - `schoolbajar-admin/README.md`
+  - `schoolbajar-partner/README.md`
+  - `schoolbajar-customer/README.md`
+  - `schoolbajar-desktop/README.md`

@@ -1,4 +1,4 @@
-# SchoolMart API Contract
+# School Bajar API Contract
 
 Base URL: `/api/v1/`  
 WebSocket base: `/ws/v1/`  

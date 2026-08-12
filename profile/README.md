@@ -1,11 +1,11 @@
-# SchoolMart
+# School Bajar
 
 School supplies delivery platform for Gujarat, India. Parents and students order books, uniforms, shoes, and school kits — delivered to home or handed to the student at school.
 
 ## Repository Structure
 
 ```
-SchoolMart/
+School Bajar/
 ├── backend/          # Django API (this README focuses on backend)
 ├── docs/             # API contract, env vars, security
 └── ...
@@ -50,7 +50,7 @@ Or locally (requires PostGIS):
 ```bash
 cd backend
 pip install -r requirements.txt
-export DJANGO_SETTINGS_MODULE=schoolmart.settings.development
+export DJANGO_SETTINGS_MODULE=schoolbajar.settings.development
 pytest
 ```
 
@@ -68,13 +68,13 @@ pytest
 ## Documentation
 
 - [API Contract](docs/API_CONTRACT.md) — REST endpoints + WebSocket schemas
-- [Environment Variables](docs/ENV.example) — all `SCHOOLMART_*` vars
+- [Environment Variables](docs/ENV.example) — all `SCHOOLBAJAR_*` vars
 - [Security Checklist](docs/SECURITY.md)
 
 ## Production Deploy
 
-1. Set `DJANGO_SETTINGS_MODULE=schoolmart.settings.production`
-2. Configure all `SCHOOLMART_*` env vars (see `docs/ENV.example`)
+1. Set `DJANGO_SETTINGS_MODULE=schoolbajar.settings.production`
+2. Configure all `SCHOOLBAJAR_*` env vars (see `docs/ENV.example`)
 3. Use Nginx sample config: `backend/nginx/nginx.conf.sample`
 4. Run migrations and collect static files
 5. Mount `media/` volume for uploads and receipt PDFs

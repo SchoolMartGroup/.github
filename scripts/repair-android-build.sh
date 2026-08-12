@@ -1,20 +1,20 @@
 #!/usr/bin/env bash
-# Repair corrupted Gradle state and build a SchoolMart Flutter Android app.
+# Repair corrupted Gradle state and build a School Bajar Flutter Android app.
 # Usage: ./scripts/repair-android-build.sh partner|customer|admin
 #
 # Builds one app at a time to avoid exhausting RAM (do not run multiple in parallel).
 set -euo pipefail
 
 APP="${1:-partner}"
-ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-APP_DIR="$ROOT/apps/schoolmart_${APP}"
+ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
+APP_DIR="$ROOT/schoolbajar-${APP}"
 
 if [[ ! -d "$APP_DIR" ]]; then
   echo "Unknown app: $APP" >&2
   exit 1
 fi
 
-echo "==> Repairing Android build for schoolmart_${APP}"
+echo "==> Repairing Android build for schoolbajar-${APP}"
 
 # Stop Gradle daemons that may hold corrupted locks.
 if [[ -x "$APP_DIR/android/gradlew" ]]; then
@@ -28,7 +28,7 @@ rm -rf \
   "$APP_DIR/build" \
   "$APP_DIR/.dart_tool"
 
-export GRADLE_USER_HOME="${GRADLE_USER_HOME:-/tmp/gradle-schoolmart-$(whoami)}"
+export GRADLE_USER_HOME="${GRADLE_USER_HOME:-/tmp/gradle-schoolbajar-$(whoami)}"
 mkdir -p "$GRADLE_USER_HOME"
 echo "==> Using GRADLE_USER_HOME=$GRADLE_USER_HOME"
 

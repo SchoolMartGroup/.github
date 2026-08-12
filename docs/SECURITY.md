@@ -1,13 +1,13 @@
-# SchoolMart Security Checklist
+# School Bajar Security Checklist
 
 ## Secrets & Configuration
 
-- [ ] `SCHOOLMART_SECRET_KEY` is unique per environment and never committed
+- [ ] `SCHOOLBAJAR_SECRET_KEY` is unique per environment and never committed
 - [ ] Database credentials stored in environment variables only
-- [ ] `SCHOOLMART_GOOGLE_MAPS_SERVER_KEY` is server-restricted; not embedded in mobile/web clients
+- [ ] `SCHOOLBAJAR_GOOGLE_MAPS_SERVER_KEY` is server-restricted; not embedded in mobile/web clients
 - [ ] Cashfree App ID and secret key in env only
 - [ ] Firebase service account JSON mounted as secret file, not in repo
-- [ ] `DEBUG=False` in production (`schoolmart.settings.production`)
+- [ ] `DEBUG=False` in production (`schoolbajar.settings.production`)
 
 ## Transport & Cookies
 
@@ -53,7 +53,7 @@
 
 ## CORS
 
-- [ ] Production: explicit `SCHOOLMART_CORS_ALLOWED_ORIGINS` only
+- [ ] Production: explicit `SCHOOLBAJAR_CORS_ALLOWED_ORIGINS` only
 - [ ] Development: permissive CORS for local apps only
 
 ## Infrastructure

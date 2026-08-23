@@ -515,7 +515,11 @@ docker compose restart web daphne celery-worker
 ## 15. Related docs
 
 - [API_CONTRACT.md](./API_CONTRACT.md) — all REST endpoints and WebSocket message formats
+- [API_CONTRACT_SCHEDULE_AND_ROUTES.md](./API_CONTRACT_SCHEDULE_AND_ROUTES.md) — delivery schedule, slots, multi-stop routes, OTP-free register
+- [DEPLOY_STATIC_AND_HARDENING.md](./DEPLOY_STATIC_AND_HARDENING.md) — HTTPS, `/privacy`, `/terms`, app client key
+- [DESKTOP_RELEASES.md](./DESKTOP_RELEASES.md) — OTP-gated desktop installer publish/download
 - [ENV.example](./ENV.example) — full environment variable reference
+- [SECURITY.md](./SECURITY.md) — security checklist
 - App-specific READMEs:
   - `schoolbajar-admin/README.md`
   - `schoolbajar-partner/README.md`

@@ -68,8 +68,12 @@ pytest
 ## Documentation
 
 - [API Contract](docs/API_CONTRACT.md) — REST endpoints + WebSocket schemas
+- [Schedule & Routes API](docs/API_CONTRACT_SCHEDULE_AND_ROUTES.md) — delivery slots, multi-stop routes, OTP-free register
+- [Deploy & Hardening](docs/DEPLOY_STATIC_AND_HARDENING.md) — HTTPS, legal pages, app client key
+- [Desktop Releases](docs/DESKTOP_RELEASES.md) — OTP-gated `.exe`/`.dmg` publish + download
 - [Environment Variables](docs/ENV.example) — all `SCHOOLBAJAR_*` vars
 - [Security Checklist](docs/SECURITY.md)
+- [Local Setup](docs/LOCAL_SETUP.md)
 
 ## Production Deploy
 

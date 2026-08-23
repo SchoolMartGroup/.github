@@ -7,6 +7,8 @@ Auth: `Authorization: Bearer <access_token>`
 OpenAPI schema: `/api/schema/`  
 Swagger UI: `/api/docs/`
 
+Related: [delivery schedule & multi-stop routes](./API_CONTRACT_SCHEDULE_AND_ROUTES.md) · [desktop releases](./DESKTOP_RELEASES.md) · [deploy & hardening](./DEPLOY_STATIC_AND_HARDENING.md)
+
 ---
 
 ## Authentication

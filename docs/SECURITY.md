@@ -68,3 +68,7 @@
 - [ ] Structured logging without sensitive fields
 - [ ] Failed auth and webhook verification logged
 - [ ] Location ping retention: 30 days (Celery cleanup task)
+
+## Related
+
+See [DEPLOY_STATIC_AND_HARDENING.md](./DEPLOY_STATIC_AND_HARDENING.md) for HTTPS layout, `/privacy`/`/terms`, and app client key gating.

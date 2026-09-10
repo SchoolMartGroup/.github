@@ -75,13 +75,16 @@ pytest
 - [Security Checklist](docs/SECURITY.md)
 - [Local Setup](docs/LOCAL_SETUP.md)
 
-## Production Deploy
+## Production Deploy (VPS with existing Postgres + Redis)
 
-1. Set `DJANGO_SETTINGS_MODULE=schoolbajar.settings.production`
-2. Configure all `SCHOOLBAJAR_*` env vars (see `docs/ENV.example`)
-3. Use Nginx sample config: `backend/nginx/nginx.conf.sample`
-4. Run migrations and collect static files
-5. Mount `media/` volume for uploads and receipt PDFs
+Do **not** run `docker compose up` on the VPS — that file starts extra Postgres/Redis and will fight host `:5432` / `:6379`.
+
+1. Create a dedicated DB + PostGIS: `scripts/prepare_host_postgres.sql`
+2. `.env`: `SCHOOLBAJAR_DB_HOST=127.0.0.1` and `SCHOOLBAJAR_REDIS_URL=redis://127.0.0.1:6379/1` (plus secret, app client key, `DEBUG=False`)
+3. `docker compose -f docker-compose.prod.yml up --build -d`
+4. `docker compose -f docker-compose.prod.yml exec web python manage.py migrate`
+5. `docker compose -f docker-compose.prod.yml exec web python manage.py collectstatic --noinput`
+6. Point existing Nginx at `127.0.0.1:8000` (`/api/`) and `127.0.0.1:8001` (`/ws/`) — see `nginx/nginx.conf.sample`
 
 ## Tech Stack
 

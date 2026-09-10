@@ -47,12 +47,24 @@ server {
         return 301 /terms/;
     }
 
-    # API → Django
+    # API → Django (docker-compose.prod.yml web)
     location /api/ {
         proxy_pass http://127.0.0.1:8000;
         proxy_set_header Host $host;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # WebSocket → Daphne
+    location /ws/ {
+        proxy_pass http://127.0.0.1:8001;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 86400;
     }
 
     # Optional: lock down admin
@@ -67,6 +79,24 @@ server {
 
 Copy `schoolbajar-backend/static_pages/` to the server path used in `alias` (e.g. `/var/www/schoolbajar/static_pages/`).
 Each of `privacy/` and `terms/` includes `logo-wordmark.png`, `logo-icon.png`, and `favicon.png` for relative URLs (no extra nginx location required). A shared copy also lives under `static_pages/assets/` if you prefer a single branding folder later.
+
+## VPS: existing Postgres + Redis (no extra containers)
+
+Use `docker-compose.prod.yml`. It runs only `web`, `daphne`, `celery-worker`, and `celery-beat` on the host network so they use `127.0.0.1:5432` and `127.0.0.1:6379`. It does not start Postgres or Redis.
+
+```bash
+# one-time: dedicated database + PostGIS (does not touch other DBs)
+sudo -u postgres psql -f scripts/prepare_host_postgres.sql
+
+# .env: SCHOOLBAJAR_DB_HOST=127.0.0.1
+#       SCHOOLBAJAR_REDIS_URL=redis://127.0.0.1:6379/1
+
+docker compose -f docker-compose.prod.yml up --build -d
+docker compose -f docker-compose.prod.yml exec web python manage.py migrate
+docker compose -f docker-compose.prod.yml exec web python manage.py collectstatic --noinput
+```
+
+Host Postgres must have the PostGIS extension. Redis DB index `1` keeps Celery/Channels off whatever already uses DB `0`. Nginx on the VPS should proxy `/api/` → `127.0.0.1:8000` and `/ws/` → `127.0.0.1:8001`. Compose binds gunicorn/daphne to loopback only.
 
 ## Required production env vars
 
@@ -101,9 +131,24 @@ Clients send:
 - [x] App client key required on `/api/` requests
 - [x] Default DRF permission `IsAuthenticated` (login/register/refresh remain `AllowAny` but still need app key)
 - [x] OTP bypass cleared in production (`SCHOOLBAJAR_OTP_BYPASS_CODE=""`)
+- [x] `SECURE_CONTENT_TYPE_NOSNIFF`, `SECURE_REFERRER_POLICY`, `X_FRAME_OPTIONS=DENY` (production.py)
+- [x] Authenticated media gate: production `MEDIA_URL=/api/v1/media/` + nginx `/media/` deny + `/protected-media/` internal (see `nginx/nginx.conf.sample`)
+- [x] Gunicorn/Daphne bind `127.0.0.1` in `docker-compose.prod.yml` (nginx only public)
 - [ ] `ALLOWED_HOSTS` includes `schoolbajar.com`
 - [ ] Do not log `SCHOOLBAJAR_SECRET_KEY`, `SCHOOLBAJAR_APP_CLIENT_KEY`, or payment secrets
 - [ ] Prefer not exposing `/admin/` on the public internet
+- [ ] Confirm nginx sample headers/CSP applied on the VPS (`schoolbajar-backend/nginx/nginx.conf.sample`)
+
+## Media & uploads (production)
+
+| Concern | Policy |
+|---------|--------|
+| Public `/media/` | **Denied** (403). Not a static alias. |
+| File bytes | nginx `location /protected-media/ { internal; alias … }` |
+| Auth gate | Django `GET /api/v1/media/<path>` (`MediaServeView`) or dedicated views (receipts, desktop OTP) set `X-Accel-Redirect` |
+| DEBUG | `django.conf.urls.static` may serve `/media/` locally — **never** replicate in prod |
+| Images | `validate_image_file`: extension allowlist, magic bytes + Pillow, reject SVG/HTML/XML; UUID storage names |
+| Body size | Global nginx `client_max_body_size 5m`; desktop installers use dedicated `/api/v1/desktop/releases/` at 500m |
 
 ## Desktop installer distribution
 

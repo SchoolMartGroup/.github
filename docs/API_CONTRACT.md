@@ -142,7 +142,15 @@ Related: [delivery schedule & multi-stop routes](./API_CONTRACT_SCHEDULE_AND_ROU
 
 ## WebSocket Messages
 
-Auth: `?token=<JWT>` query param or first message `{"type":"auth","token":"..."}`
+**Auth (do not use `?token=<JWT>` — leaks in logs):**
+
+1. Handshake headers: `Authorization: Bearer <access>` + `X-SchoolBajar-App-Key` (native)
+2. First message (not logged): `{"type":"auth","token":"<access>","app_key":"<optional if configured>"}`
+3. Short-lived ticket: `POST /api/v1/auth/ws-ticket/` then connect with `?ticket=<opaque>` (single-use, ~60s TTL)
+
+| Method | Path | Description |
+|--------|------|-------------|
+| POST | `/auth/ws-ticket/` | Mint single-use WS ticket (JWT + app key required) |
 
 ### Channels
 

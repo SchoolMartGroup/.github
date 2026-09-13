@@ -141,7 +141,7 @@
 ### UI / XSS surface
 
 - [x] No `WebView` / `Html()` / `innerHTML` of API strings — Text widgets only
-- [x] External links via allowlisted `launchAllowedUrl` (`https://schoolbajar.com` privacy/terms, tel/WhatsApp support, Google Maps navigation, configured API HTTPS host for receipts)
+- [x] External links via allowlisted `launchAllowedUrl` (`https://schoolbajar.com` privacy/terms, mailto support, `tel:` for partner-to-customer calls, Google Maps navigation, configured API HTTPS host for receipts)
 - [x] Android `FLAG_SECURE` on auth and payment screens via platform channel (`SecureScreenScope`) — no third-party screen-security libs
 - [x] Flutter web `web/index.html` CSP on all three apps (web is not the primary store channel; CSP still reduces XSS blast radius)
 - [x] Customer OTP login remains removed (password + trusted phone entry only)

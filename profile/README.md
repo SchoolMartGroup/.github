@@ -69,7 +69,7 @@ pytest
 
 - [API Contract](docs/API_CONTRACT.md) — REST endpoints + WebSocket schemas
 - [Schedule & Routes API](docs/API_CONTRACT_SCHEDULE_AND_ROUTES.md) — delivery slots, multi-stop routes, OTP-free register
-- [Deploy & Hardening](docs/DEPLOY_STATIC_AND_HARDENING.md) — HTTPS, legal pages, app client key
+- [Deploy & Hardening](docs/DEPLOY_STATIC_AND_HARDENING.md) — HTTPS, Vue public site + `/privacy` `/terms`, app client key
 - [Desktop Releases](docs/DESKTOP_RELEASES.md) — OTP-gated `.exe`/`.dmg` publish + download
 - [Environment Variables](docs/ENV.example) — all `SCHOOLBAJAR_*` vars
 - [Security Checklist](docs/SECURITY.md)
@@ -84,7 +84,7 @@ Do **not** run `docker compose up` on the VPS — that file starts extra Postgre
 3. `docker compose -f docker-compose.prod.yml up --build -d`
 4. `docker compose -f docker-compose.prod.yml exec web python manage.py migrate`
 5. `docker compose -f docker-compose.prod.yml exec web python manage.py collectstatic --noinput`
-6. Point existing Nginx at `127.0.0.1:8000` (`/api/`) and `127.0.0.1:8001` (`/ws/`) — see `nginx/nginx.conf.sample`
+6. Point existing Nginx: `/` → Vue `dist/` (`schoolbajar-frontend`), `/api/` → Gunicorn, `/ws/` → Daphne — see `nginx/nginx.conf.sample`. On the shared VPS this is `127.0.0.1:8010` / `:8011`.
 
 ## Tech Stack
 

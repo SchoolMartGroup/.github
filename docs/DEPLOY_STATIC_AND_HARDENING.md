@@ -1,4 +1,4 @@
-# Deploy: static legal pages + API hardening
+# Deploy: Vue public site + API hardening
 
 Production host: `https://schoolbajar.com`
 
@@ -6,20 +6,37 @@ Production host: `https://schoolbajar.com`
 
 | Path | Backend |
 |------|---------|
+| `/` | Vue marketing site (`schoolbajar-frontend/dist`) — **not** a redirect to privacy |
+| `/privacy/`, `/terms/` | Prefer prerendered HTML from the same `dist/` (SPA `try_files` fallback) |
 | `/api/` | Django / Gunicorn (ASGI/WSGI) |
-| `/privacy/` | Static HTML (`static_pages/privacy/index.html`) |
-| `/terms/` | Static HTML (`static_pages/terms/index.html`) |
-| `/admin/` | Prefer private network / VPN / IP allowlist — do not expose publicly if possible |
+| `/ws/` | Daphne (WebSocket upgrade) |
+| `/admin/` | Django — prefer private network / VPN / IP allowlist; do not expose publicly if possible |
 | `/api/schema/`, `/api/docs/` | Disabled when `DEBUG=False` (production settings) |
 
-Public Play Store URLs:
+Public Play Store URLs (must keep working, with or without trailing slash):
 
 - https://schoolbajar.com/privacy
 - https://schoolbajar.com/terms
 
-These pages are **outside** `/api` and are plain static HTML (not Django templates). Account deletion is **in-app only** (Customer app → Account → Delete account).
+Privacy and terms live only on the **Vue frontend** (`schoolbajar-frontend` `/privacy`, `/terms`). Do **not** 302 `/` → `/privacy/` — `/` is the marketing homepage. Django no longer ships `static_pages/`.
+
+Account deletion remains **in-app only** (Customer app → Account → Delete account).
+
+## Build & deploy the public site
+
+```bash
+cd schoolbajar-frontend
+npm ci
+npm run build
+# Copy dist/ to the nginx root, e.g.:
+# rsync -a --delete dist/ /var/www/schoolbajar-frontend/
+```
+
+Nginx `root` should point at that deployed folder (placeholder: `/var/www/schoolbajar-frontend/`). After each frontend release, rebuild and sync `dist/`, then `nginx -t && systemctl reload nginx`.
 
 ## Example nginx
+
+Full sample (media gate, desktop upload size, headers): `schoolbajar-backend/nginx/nginx.conf.sample`.
 
 ```nginx
 server {
@@ -30,22 +47,11 @@ server {
     # ssl_certificate     /etc/letsencrypt/live/schoolbajar.com/fullchain.pem;
     # ssl_certificate_key /etc/letsencrypt/live/schoolbajar.com/privkey.pem;
 
-    # Legal pages (static) — NOT under /api
-    location /privacy/ {
-        alias /var/www/schoolbajar/static_pages/privacy/;
-        try_files $uri $uri/ /privacy/index.html;
-    }
-    location = /privacy {
-        return 301 /privacy/;
-    }
-
-    location /terms/ {
-        alias /var/www/schoolbajar/static_pages/terms/;
-        try_files $uri $uri/ /terms/index.html;
-    }
-    location = /terms {
-        return 301 /terms/;
-    }
+    # Baseline security headers on this server block
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "DENY" always;
+    add_header Referrer-Policy "same-origin" always;
+    add_header Permissions-Policy "geolocation=(), microphone=(), camera=()" always;
 
     # API → Django (docker-compose.prod.yml web)
     location /api/ {
@@ -74,11 +80,24 @@ server {
     #     proxy_pass http://127.0.0.1:8000;
     #     ...
     # }
+
+    # Public Vue site (marketing homepage + privacy/terms from dist)
+    # Prefer real files under dist (e.g. privacy/index.html, terms/index.html)
+    # when present; otherwise SPA fallback to /index.html.
+    location / {
+        root /var/www/schoolbajar-frontend;
+        try_files $uri $uri/ /index.html;
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header X-Frame-Options "DENY" always;
+        add_header Referrer-Policy "same-origin" always;
+        add_header Permissions-Policy "geolocation=(), microphone=(), camera=()" always;
+        # Tune CSP to match the Vue build (scripts/styles/assets from 'self')
+        add_header Content-Security-Policy "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'" always;
+    }
 }
 ```
 
-Copy `schoolbajar-backend/static_pages/` to the server path used in `alias` (e.g. `/var/www/schoolbajar/static_pages/`).
-Each of `privacy/` and `terms/` includes `logo-wordmark.png`, `logo-icon.png`, and `favicon.png` for relative URLs (no extra nginx location required). A shared copy also lives under `static_pages/assets/` if you prefer a single branding folder later.
+Do **not** alias `/privacy/` or `/terms/` to Django. Those URLs are frontend routes.
 
 ## VPS: existing Postgres + Redis (no extra containers)
 
@@ -96,7 +115,7 @@ docker compose -f docker-compose.prod.yml exec web python manage.py migrate
 docker compose -f docker-compose.prod.yml exec web python manage.py collectstatic --noinput
 ```
 
-Host Postgres must have the PostGIS extension. Redis DB index `1` keeps Celery/Channels off whatever already uses DB `0`. Nginx on the VPS should proxy `/api/` → `127.0.0.1:8000` and `/ws/` → `127.0.0.1:8001`. Compose binds gunicorn/daphne to loopback only.
+Host Postgres must have the PostGIS extension. Redis DB index `1` keeps Celery/Channels off whatever already uses DB `0`. Nginx on the VPS should proxy `/api/` → `127.0.0.1:8000` and `/ws/` → `127.0.0.1:8001`, and serve `/` from the Vue `dist/` deploy path. Compose binds gunicorn/daphne to loopback only.
 
 ## Required production env vars
 
@@ -105,7 +124,7 @@ SCHOOLBAJAR_SECRET_KEY=...          # strong secret
 SCHOOLBAJAR_DEBUG=False
 SCHOOLBAJAR_ALLOWED_HOSTS=schoolbajar.com
 SCHOOLBAJAR_APP_CLIENT_KEY=...      # shared secret; Flutter sends as X-SchoolBajar-App-Key
-SCHOOLBAJAR_CORS_ALLOWED_ORIGINS=   # empty/minimal — native apps; no random web origins
+SCHOOLBAJAR_CORS_ALLOWED_ORIGINS=   # empty/minimal — native apps; same-origin web needs no CORS
 # Leave OTP bypass unset/empty in production (production.py forces ""):
 # SCHOOLBAJAR_OTP_BYPASS_CODE=
 ```
@@ -138,6 +157,8 @@ Clients send:
 - [ ] Do not log `SCHOOLBAJAR_SECRET_KEY`, `SCHOOLBAJAR_APP_CLIENT_KEY`, or payment secrets
 - [ ] Prefer not exposing `/admin/` on the public internet
 - [ ] Confirm nginx sample headers/CSP applied on the VPS (`schoolbajar-backend/nginx/nginx.conf.sample`)
+- [ ] Deploy Vue `dist/` to nginx root; `/` serves homepage (no redirect to `/privacy/`)
+- [ ] Confirm `/privacy` and `/terms` still resolve from frontend `dist` (Play Store URLs)
 
 ## Media & uploads (production)
 

@@ -92,7 +92,7 @@
 - [ ] **Media default deny:** public `/media/` returns 403; bytes via nginx `internal` `/protected-media/` + Django `X-Accel-Redirect` after auth (`MediaServeView`, `ReceiptDownloadView`, desktop OTP download)
 - [ ] Production `MEDIA_URL=/api/v1/media/`; catalog `products/` + `categories/` are public-read on the gate (app key still required); `students/` owner/staff/owning-customer/assigned-partner; receipts/desktop OWNER/STAFF; delivery_proofs OWNER/STAFF/PARTNER. DEBUG `django.conf.urls.static` is **not** the prod model
 - [ ] Flutter/desktop: do not use bare `Image.network` / `<img>` for gated media — use Dio/`AuthenticatedNetworkImage` (JWT + app key) or ownership-checked download endpoints
-- [ ] Security headers: `SECURE_CONTENT_TYPE_NOSNIFF`, `SECURE_REFERRER_POLICY`, `X_FRAME_OPTIONS=DENY`; nginx `nosniff` / `DENY` / Referrer-Policy / Permissions-Policy / CSP (`default-src 'none'` on API; tight CSP on `/privacy` `/terms`)
+- [ ] Security headers: `SECURE_CONTENT_TYPE_NOSNIFF`, `SECURE_REFERRER_POLICY`, `X_FRAME_OPTIONS=DENY`; nginx `nosniff` / `DENY` / Referrer-Policy / Permissions-Policy / CSP (`default-src 'none'` on API `/api/` + `/ws/`; SPA-tuned CSP on the **static frontend** nginx `location /` that serves `schoolbajar-frontend` `dist/` — marketing + prerendered `/privacy` `/terms`)
 - [ ] nginx: `server_tokens off`, `autoindex off`, TRACE/non-API methods limited; desktop 500MiB body only on `/api/v1/desktop/releases/`
 - [ ] Gunicorn/Daphne bind `127.0.0.1`; nginx only public
 - [ ] PostgreSQL not exposed publicly
@@ -157,4 +157,6 @@
 
 ## Related
 
-See [DEPLOY_STATIC_AND_HARDENING.md](./DEPLOY_STATIC_AND_HARDENING.md) for HTTPS layout, `/privacy`/`/terms`, and app client key gating.
+See [DEPLOY_STATIC_AND_HARDENING.md](./DEPLOY_STATIC_AND_HARDENING.md) for HTTPS layout, public site cutover, and app client key gating.
+
+Public legal surface: `schoolbajar-frontend` (Vue SSG) at `/` from `dist/`; Play Store URLs `https://schoolbajar.com/privacy` and `/terms` are prerendered frontend routes. `/api/` and `/ws/` stay Django. Backend `static_pages/` was removed.

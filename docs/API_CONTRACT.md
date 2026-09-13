@@ -4,6 +4,8 @@ Base URL: `/api/v1/`
 WebSocket base: `/ws/v1/`  
 Auth: `Authorization: Bearer <access_token>`
 
+Browser website (Vite): send `Authorization: Bearer` + `Content-Type`. Do **not** embed `SCHOOLBAJAR_APP_CLIENT_KEY` in JS. Requests whose `Origin` is in `SCHOOLBAJAR_WEB_ORIGINS` skip the app-key gate. Catalog images at `/api/v1/media/products/` and `/categories/` are GET-public (no JWT, no app key) so `<img>` works. Student photos and receipts need `fetch` + JWT (not raw `<img src>`).
+
 OpenAPI schema: `/api/schema/`  
 Swagger UI: `/api/docs/`
 
@@ -107,7 +109,7 @@ Related: [delivery schedule & multi-stop routes](./API_CONTRACT_SCHEDULE_AND_ROU
 
 | Method | Path | Description |
 |--------|------|-------------|
-| POST | `/payments/cashfree/create/` | `{order_id}` → Cashfree order + payment session |
+| POST | `/payments/cashfree/create/` | `{order_id, return_url?}` → Cashfree order + `payment_session_id`. Optional `return_url` for web checkout (origin must be in `SCHOOLBAJAR_WEB_ORIGINS`; may include `{order_id}`). Flutter omits it. |
 | POST | `/payments/cashfree/verify/` | Confirm order paid via Cashfree API |
 | POST | `/payments/webhook/cashfree/` | Cashfree webhook (no auth) |
 | POST | `/payments/cod/` | Confirm COD `{order_id}` |
@@ -146,11 +148,11 @@ Related: [delivery schedule & multi-stop routes](./API_CONTRACT_SCHEDULE_AND_ROU
 
 1. Handshake headers: `Authorization: Bearer <access>` + `X-SchoolBajar-App-Key` (native)
 2. First message (not logged): `{"type":"auth","token":"<access>","app_key":"<optional if configured>"}`
-3. Short-lived ticket: `POST /api/v1/auth/ws-ticket/` then connect with `?ticket=<opaque>` (single-use, ~60s TTL)
+3. Short-lived ticket (website): `POST /api/v1/auth/ws-ticket/` with JWT (app key skipped when `Origin` is allowlisted) then connect `ws/v1/orders/{id}/?ticket=<opaque>` (single-use, ~60s TTL). Never put the access JWT in the query string.
 
 | Method | Path | Description |
 |--------|------|-------------|
-| POST | `/auth/ws-ticket/` | Mint single-use WS ticket (JWT + app key required) |
+| POST | `/auth/ws-ticket/` | Mint single-use WS ticket (JWT; app key required unless web Origin) |
 
 ### Channels
 

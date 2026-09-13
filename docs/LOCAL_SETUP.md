@@ -276,7 +276,7 @@ cd schoolbajar-customer
 flutter run \
   --dart-define=API_BASE_URL=http://10.0.2.2:8000/api/v1 \
   --dart-define=WS_BASE_URL=ws://10.0.2.2:8001 \
-  --dart-define=SUPPORT_PHONE=+919876543210 \
+  --dart-define=SUPPORT_EMAIL=info@schoolbajar.com \
   --dart-define=SHOP_UPI_ID=schoolbajar@upi
 ```
 

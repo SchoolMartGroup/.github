@@ -5,6 +5,7 @@
 - [ ] `SCHOOLBAJAR_SECRET_KEY` is unique per environment and never committed
 - [ ] Database credentials stored in environment variables only
 - [ ] `SCHOOLBAJAR_GOOGLE_MAPS_SERVER_KEY` is server-restricted; not embedded in mobile/web clients
+- [ ] Android / iOS / JS Maps keys live only in gitignored `local.properties`, `Secrets.xcconfig`, and `.env` — never `AppDelegate.swift` or committed manifests
 - [ ] Cashfree App ID and secret key in env only
 - [ ] Firebase service account JSON mounted as secret file, not in repo
 - [ ] `DEBUG=False` in production (`schoolbajar.settings.production`)

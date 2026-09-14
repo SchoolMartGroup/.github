@@ -168,10 +168,13 @@ Create a Google Cloud project and enable:
 
 | Where | Key type | Variable |
 |-------|----------|----------|
-| Backend `.env` | Server key (IP restricted) | `SCHOOLBAJAR_GOOGLE_MAPS_SERVER_KEY` |
-| Flutter Android | Android key | `AndroidManifest.xml` or `local.properties` |
-| Flutter iOS | iOS key | `AppDelegate.swift` |
-| Desktop `.env` | Browser key | `VITE_GOOGLE_MAPS_JS_KEY` |
+| Backend `.env` (gitignored) | Server key (IP restricted) | `SCHOOLBAJAR_GOOGLE_MAPS_SERVER_KEY` |
+| Flutter Android `android/local.properties` (gitignored) | Android key | `MAPS_API_KEY` / `GOOGLE_MAPS_API_KEY` |
+| Flutter iOS `ios/Flutter/Secrets.xcconfig` (gitignored) | iOS key | `GOOGLE_MAPS_API_KEY` |
+| Desktop `.env` (gitignored) | Browser key | `VITE_GOOGLE_MAPS_JS_KEY` |
+| Public site `.env` (gitignored) | Browser key | `VITE_GOOGLE_MAPS_API_KEY` |
+
+Never paste keys into `AppDelegate.swift`, `AndroidManifest.xml`, or any committed file.
 
 **Without keys:** apps run, but map tiles and routing will be blank or fail.
 

@@ -104,6 +104,45 @@ docker compose exec web python manage.py migrate
 docker compose exec web python manage.py seed_demo
 ```
 
+### 3.3b Bulk seed (optional load / UI data)
+
+`seed_demo` stays as the small smoke set. For larger catalogs use `seed_bulk`
+(idempotent by `BULK-*` codes / phones / SKUs; reuses the four PNGs in
+`demo_product_images/`).
+
+```bash
+# Defaults: --schools 20 --categories 100 --products 1000
+#           --customers 300 --partners 40 --students 100 --orders 500
+docker compose exec web python manage.py seed_bulk --products 1000
+
+# Smaller / custom
+docker compose exec web python manage.py seed_bulk \
+  --schools 5 --categories 20 --products 50 --customers 30 \
+  --partners 5 --students 20 --orders 25
+
+# Wipe previous BULK-* rows then reseed (default is no wipe)
+docker compose exec web python manage.py seed_bulk --reset --products 100
+
+# Production / DEBUG=False requires explicit force + typed confirm
+docker compose exec web python manage.py seed_bulk --force --confirm "SEED BULK"
+```
+
+| Flag | Default | Notes |
+|------|---------|--------|
+| `--schools` | 20 | Gujarat cities/names |
+| `--categories` | 100 | Stable `bulk-cat-*` slugs |
+| `--products` | 1000 | Variants + warehouse stock + cycled demo images |
+| `--customers` | 300 | Synthetic `+9171…` phones |
+| `--partners` | 40 | Synthetic `+9172…` phones |
+| `--students` | 100 | Linked to bulk schools/customers |
+| `--orders` | 500 | Mixed statuses; COD/UPI/Cashfree-**looking** rows (no Cashfree API) |
+| `--reset` | off | Delete prior BULK-* data before insert |
+| `--force` | off | Required when `DEBUG=False` |
+| `--confirm` | `""` | Must be exactly `SEED BULK` with `--force` |
+| `--password` | `bulkseed123` | Password for newly created bulk users |
+
+Does **not** disable API throttles. Prefer running index migrations before large seeds.
+
 ### 3.4 Verify backend
 
 ```bash

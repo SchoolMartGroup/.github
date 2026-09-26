@@ -45,7 +45,7 @@ Related: [delivery schedule & multi-stop routes](./API_CONTRACT_SCHEDULE_AND_ROU
 |--------|------|------|-------------|
 | GET | `/catalog/categories/` | all | Category tree |
 | POST/PATCH/DELETE | `/catalog/categories/` | OWNER,STAFF | Category CRUD |
-| GET | `/catalog/products/` | all | Filter `category`, `type`, `q`, `include_inactive` (staff) |
+| GET | `/catalog/products/` | all | Filter `category`, `type`, `q`, `school` (kit products ∪ `requires_school=False`), `include_inactive` (staff). Variants included for OWNER/STAFF (or `include_variants=1`) |
 | GET | `/catalog/products/{id}/` | all | Product detail |
 | POST/PATCH/DELETE | `/catalog/products/` | OWNER,STAFF | Product CRUD |
 | POST | `/catalog/products/{id}/upload_image/` | OWNER,STAFF | Multipart image |
@@ -61,7 +61,7 @@ Related: [delivery schedule & multi-stop routes](./API_CONTRACT_SCHEDULE_AND_ROU
 |--------|------|------|-------------|
 | GET | `/inventory/stock/` | OWNER,STAFF,PARTNER read | Filter `warehouse`, `low_stock` |
 | POST | `/inventory/adjustments/` | OWNER,STAFF | `{variant_id, quantity_delta, reason}` |
-| GET | `/inventory/ledger/` | OWNER,STAFF | Audit log |
+| GET | `/inventory/ledger/` | OWNER,STAFF | Audit log (paginated) |
 | CRUD | `/inventory/suppliers/` | OWNER,STAFF | Suppliers |
 | CRUD | `/inventory/purchase-orders/` | OWNER,STAFF | Purchase orders |
 | POST | `/inventory/purchase-orders/{id}/receive/` | OWNER,STAFF | Receive stock; optional `{lines: [{line_id, quantity_received}]}` |
@@ -78,9 +78,9 @@ Related: [delivery schedule & multi-stop routes](./API_CONTRACT_SCHEDULE_AND_ROU
 | DELETE | `/cart/{item_id}/` | CUSTOMER | Remove item |
 | POST | `/orders/` | CUSTOMER | Checkout `{fulfillment_type, student_id?, address?, payment_method}` |
 | POST | `/orders/pos/` | OWNER,STAFF | Walk-in POS `{lines[], discount?, payment_method, upi_reference?}` |
-| GET | `/orders/` | role-filtered | Order list |
+| GET | `/orders/` | role-filtered | Order list. Query: `status`, `school_id`, `created_after`, `created_before` (ISO date/datetime) |
 | GET | `/orders/{id}/` | role-filtered | Order detail |
-| PATCH | `/orders/{id}/status/` | STAFF,PARTNER,OWNER | `{status, note?}` |
+| PATCH | `/orders/{id}/status/` | OWNER,STAFF,PARTNER | `{status, note?}`. Customers must use cancel. |
 | POST | `/orders/{id}/assign-partner/` | OWNER,STAFF | `{partner_id}` |
 | GET | `/orders/{id}/suggested-partners/` | OWNER,STAFF | Partner suggestions |
 | POST | `/orders/{id}/cancel/` | CUSTOMER (own) | Cancel before PACKING |
@@ -100,7 +100,7 @@ Related: [delivery schedule & multi-stop routes](./API_CONTRACT_SCHEDULE_AND_ROU
 | PATCH | `/delivery/partners/{id}/duty/` | OWNER,STAFF | Admin override `{is_on_duty?, is_online?}` |
 | GET | `/delivery/partners/{id}/location/` | OWNER,STAFF | Partner location |
 | GET | `/delivery/orders/{order_id}/route/` | authenticated (order owner) | Cached route polyline |
-| POST | `/delivery/geocode/` | JWT | `{line1?, line2?, city?, pincode?, lat?, lng?}` → `{lat, lng}` |
+| POST | `/delivery/geocode/` | CUSTOMER,OWNER,STAFF | `{line1?, line2?, city?, pincode?, lat?, lng?}` → `{lat, lng}` (PARTNER denied) |
 | CRUD | `/delivery/geofences/` | OWNER,STAFF | GeoJSON polygon in `geojson` field |
 
 ---
@@ -113,7 +113,7 @@ Related: [delivery schedule & multi-stop routes](./API_CONTRACT_SCHEDULE_AND_ROU
 | POST | `/payments/cashfree/verify/` | Confirm order paid via Cashfree API |
 | POST | `/payments/webhook/cashfree/` | Cashfree webhook (no auth) |
 | POST | `/payments/cod/` | Confirm COD `{order_id}` |
-| POST | `/payments/upi-manual/submit/` | Customer UPI ref |
+| POST | `/payments/upi-manual/submit/` | Customer UPI ref (`upi_reference` required; optional multipart `proof_image`) |
 | POST | `/payments/upi-manual/verify/` | STAFF verify UPI |
 | POST | `/payments/pos/complete/` | OWNER,STAFF mark POS paid `{order_id}` |
 | GET | `/receipts/` | List receipts |

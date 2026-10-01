@@ -111,7 +111,7 @@ Response shape (route):
 Existing `GET /api/v1/delivery/orders/{order_id}/route/` (per-order RouteCache) remains for single-leg ETA.
 
 ### WebSocket
-- `location_update` — still on `fleet_admin`, `partner_{id}`, and **each** assigned order channel for that partner’s active stops (not only `current_order`).
+- `location_update` — on `fleet_admin`, `partner_{id}`, and customer `order_{id}` channels **only for the stop currently being served** (`ACTIVE` or `ARRIVED`). PENDING later stops on a multi-stop route do **not** receive live GPS. Without a `DeliveryRoute`, fanout uses the partner’s `current_order` as the sole customer target. Full multi-stop route payloads are **not** sent to customers (`route_update` stays fleet + partner only).
 - `route_update` — `{ type, route }` to `fleet_admin` + `partner_{id}` when route is optimized or stop status changes.
 
 ---

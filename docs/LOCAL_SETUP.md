@@ -278,6 +278,9 @@ cd schoolbajar-customer && flutter pub get && cd ..
 | iOS simulator | `http://localhost:8000/api/v1` | `ws://localhost:8001` |
 | Physical phone (same Wi‑Fi) | `http://<LAPTOP_LAN_IP>:8000/api/v1` | `ws://<LAPTOP_LAN_IP>:8001` |
 | Flutter on Linux desktop | `http://localhost:8000/api/v1` | `ws://localhost:8001` |
+| **Hosted (schoolbajar.com)** | `https://schoolbajar.com/api/v1` | `wss://schoolbajar.com` |
+
+> **WS path:** Flutter `WsClient` connects to `{WS_BASE_URL}/ws/v1/{path}`. Use `wss://schoolbajar.com` (no `/ws/v1` suffix). Desktop Vite uses `VITE_WS_URL=wss://schoolbajar.com/ws/v1` because it joins `{VITE_WS_URL}/{path}`.
 
 Find LAN IP:
 
@@ -290,6 +293,41 @@ For physical phone, add your LAN IP to `SCHOOLBAJAR_ALLOWED_HOSTS` in `schoolbaj
 ```bash
 cd schoolbajar-backend && docker compose restart web daphne
 ```
+
+**Physical iPhone (LAN HTTP):** Each app’s `ios/Runner/Info.plist` enables local networking, Bonjour (Flutter VM service), and ATS exceptions for common dev hosts. If your Mac’s LAN IP is not listed under `NSExceptionDomains`, copy an existing IP block and replace the address, then **delete the app from the iPhone and reinstall** so iOS shows the Local Network prompt again. In **Settings → Privacy & Security → Local Network**, ensure the app is allowed.
+
+On macOS, use the gitignored helper (sources `~/schoolbajar-keys/app_client_key.env`, never prints the key):
+
+```bash
+./local/ios-run-dev.sh admin    # or customer | partner
+```
+
+### 7.2b Run against hosted API (schoolbajar.com)
+
+Requires `~/schoolbajar-keys/app_client_key.env` exporting `APP_CLIENT_KEY` (never commit the key).
+
+```bash
+./local/run-hosted.sh admin      # or: ./local/run-hosted-admin.sh
+./local/run-hosted.sh customer   # SUPPORT_EMAIL + SHOP_UPI_ID included
+./local/run-hosted.sh partner
+```
+
+Equivalent dart-defines:
+
+```bash
+# Admin / Partner
+--dart-define=API_BASE_URL=https://schoolbajar.com/api/v1 \
+--dart-define=WS_BASE_URL=wss://schoolbajar.com \
+--dart-define=APP_CLIENT_KEY=<from key env> \
+--dart-define=PRIVACY_URL=https://schoolbajar.com/privacy \
+--dart-define=TERMS_URL=https://schoolbajar.com/terms
+
+# Customer (add)
+--dart-define=SUPPORT_EMAIL=info@schoolbajar.com \
+--dart-define=SHOP_UPI_ID=schoolbajar@upi
+```
+
+After login as OWNER, verify Admin **Fleet**, **Partners**, and **Reports**.
 
 ### 7.3 Run Admin app
 

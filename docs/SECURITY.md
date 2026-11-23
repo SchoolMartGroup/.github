@@ -90,7 +90,7 @@
 
 ## Infrastructure
 
-- [ ] **Media default deny:** public `/media/` returns 403; bytes via nginx `internal` `/protected-media/` + Django `X-Accel-Redirect` after auth (`MediaServeView`, `ReceiptDownloadView`, desktop OTP download)
+- [ ] **Media default deny:** public `/media/` returns 403; bytes via nginx `internal` `/protected-media/` + Django `X-Accel-Redirect` after auth (`MediaServeView`, `ReceiptDownloadView`, desktop ticket stream / legacy OTP download)
 - [ ] Production `MEDIA_URL=/api/v1/media/`; catalog `products/` + `categories/` are public-read on the gate (app key still required); `students/` owner/staff/owning-customer/assigned-partner; receipts/desktop OWNER/STAFF; delivery_proofs OWNER/STAFF/PARTNER. DEBUG `django.conf.urls.static` is **not** the prod model
 - [ ] Flutter/desktop: do not use bare `Image.network` / `<img>` for gated media — use Dio/`AuthenticatedNetworkImage` (JWT + app key) or ownership-checked download endpoints
 - [ ] Security headers: `SECURE_CONTENT_TYPE_NOSNIFF`, `SECURE_REFERRER_POLICY`, `X_FRAME_OPTIONS=DENY`; nginx `nosniff` / `DENY` / Referrer-Policy / Permissions-Policy / CSP (`default-src 'none'` on API `/api/` + `/ws/`; SPA-tuned CSP on the **static frontend** nginx `location /` that serves `schoolbajar-frontend` `dist/` — marketing + prerendered `/privacy` `/terms`)
@@ -119,6 +119,10 @@
 - [ ] WebSocket: prefer `POST /auth/ws-ticket/` then `?ticket=` (opaque); fallback first-message `{"type":"auth","token","app_key","app_id"}` — never JWT in query
 - [ ] `VITE_APP_CLIENT_KEY` is extractable from the bundle (bump-in-the-wire); rotate by rebuild + backend key change
 - [ ] Vue router guards are UX only; server RBAC remains authoritative
+- [ ] **Auto-update:** poll `GET /desktop/releases/latest/` (metadata only); if newer, mint ticket then stream via `GET .../latest/download/` with `X-Desktop-Download-Ticket` (JWT stays in `Authorization` only — never in the download URL)
+- [ ] Ticket mint + download: OWNER/STAFF only; CUSTOMER/PARTNER → 403; platform allowlist `windows`\|`macos`; ~10/min/user throttle
+- [ ] Do **not** use legacy `download-otp` / `download` for auto-update (admin console may keep OTP for manual installs)
+- [ ] Audit logs for installer download must not include ticket, OTP, or JWT — see [DESKTOP_RELEASES.md](./DESKTOP_RELEASES.md)
 
 ## Flutter clients (customer / partner / admin)
 

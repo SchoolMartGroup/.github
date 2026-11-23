@@ -142,6 +142,31 @@ Related: [delivery schedule & multi-stop routes](./API_CONTRACT_SCHEDULE_AND_ROU
 
 ---
 
+## Desktop releases
+
+Full flow, security model, and client notes: [DESKTOP_RELEASES.md](./DESKTOP_RELEASES.md).
+
+**Preferred auto-update path** (OWNER/STAFF; JWT + app key; never put JWT in the query string):
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| GET | `/desktop/releases/latest/` | IsAuthenticated | Update check — metadata only (`version`, `build_number`, `platforms.*.available`, no URLs/paths) |
+| POST | `/desktop/releases/latest/download-ticket/` | OWNER,STAFF | Mint single-use download ticket (~90s TTL); body `{"platform":"windows"\|"macos"}` |
+| GET | `/desktop/releases/latest/download/?platform=` | OWNER,STAFF | Consume ticket + stream installer (`X-Desktop-Download-Ticket` preferred; `ticket=` query fallback) |
+| GET | `/desktop/releases/` | OWNER,STAFF | List recent releases |
+| POST | `/desktop/releases/` | OWNER,STAFF | Publish release (multipart: `version`, optional `build_number`/`notes`, `windows_exe`/`macos_dmg`) |
+
+Ticket mint and stream are rate-limited (~10/min/user → 429). CUSTOMER/PARTNER → 403.
+
+**Legacy OTP download** (admin console / ops; do not use for auto-update):
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| POST | `/desktop/releases/download-otp/` | OWNER,STAFF | Request in-app download OTP (5/min); optional `{"platform":...}` |
+| POST | `/desktop/releases/download/` | OWNER,STAFF | Verify OTP + stream installer; body `{"otp","platform"}` |
+
+---
+
 ## WebSocket Messages
 
 **Auth (do not use `?token=<JWT>` — leaks in logs):**

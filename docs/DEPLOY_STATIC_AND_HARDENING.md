@@ -166,11 +166,11 @@ Clients send:
 |---------|--------|
 | Public `/media/` | **Denied** (403). Not a static alias. |
 | File bytes | nginx `location /protected-media/ { internal; alias … }` |
-| Auth gate | Django `GET /api/v1/media/<path>` (`MediaServeView`) or dedicated views (receipts, desktop OTP) set `X-Accel-Redirect` |
+| Auth gate | Django `GET /api/v1/media/<path>` (`MediaServeView`) or dedicated views (receipts, desktop ticket stream / legacy OTP) set `X-Accel-Redirect` |
 | DEBUG | `django.conf.urls.static` may serve `/media/` locally — **never** replicate in prod |
 | Images | `validate_image_file`: extension allowlist, magic bytes + Pillow, reject SVG/HTML/XML; UUID storage names |
 | Body size | Global nginx `client_max_body_size 5m`; desktop installers use dedicated `/api/v1/desktop/releases/` at 500m |
 
 ## Desktop installer distribution
 
-See [DESKTOP_RELEASES.md](./DESKTOP_RELEASES.md) for OTP-gated `.exe`/`.dmg` publish + download, latest-version check, storage under `MEDIA_ROOT/desktop/releases/`, and `SCHOOLBAJAR_DESKTOP_MAX_UPLOAD_BYTES`.
+See [DESKTOP_RELEASES.md](./DESKTOP_RELEASES.md) for ticket + stream auto-update (preferred), legacy OTP download for admin, latest-version check, storage under `MEDIA_ROOT/desktop/releases/`, and `SCHOOLBAJAR_DESKTOP_MAX_UPLOAD_BYTES`.

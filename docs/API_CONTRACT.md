@@ -45,13 +45,48 @@ Related: [delivery schedule & multi-stop routes](./API_CONTRACT_SCHEDULE_AND_ROU
 |--------|------|------|-------------|
 | GET | `/catalog/categories/` | all | Category tree |
 | POST/PATCH/DELETE | `/catalog/categories/` | OWNER,STAFF | Category CRUD |
-| GET | `/catalog/products/` | all | Filter `category`, `type`, `q`, `school` (kit products ∪ `requires_school=False`), `include_inactive` (staff). Variants included for OWNER/STAFF (or `include_variants=1`) |
+| GET | `/catalog/products/` | all | Filter `category`, `type`, `q`, `school` (kit products ∪ `requires_school=False`), `include_inactive` (staff). Ordering: `ordering=` or `sort=` with `name\|-name\|base_price\|-base_price\|author\|-author\|popularity_score\|-popularity_score`. Variants included for OWNER/STAFF (or `include_variants=1`). Product fields include `author`, `publisher`, `mrp`, `base_price` (sale), computed `discount_percent`, `popularity_score` |
 | GET | `/catalog/products/{id}/` | all | Product detail |
+| GET | `/catalog/products/{id}/related/` | all | Curated `ProductRelation` first, then same-category fill; limit from storefront `related_limit` (default 8) |
 | POST/PATCH/DELETE | `/catalog/products/` | OWNER,STAFF | Product CRUD |
+| POST | `/catalog/products/bulk-import/` | OWNER,STAFF | Navneet dealer Excel bulk upsert (multipart). Fields: `file` (.xlsx required), `images_zip` (optional; image basename stem = CODE/SKU), `category` (optional UUID; else auto `Navneet Books`), `publisher` (default `Navneet`), `product_type` (default `BOOK`; stationery name heuristics), `tax_percent`, `dry_run`, `update_existing` (default true), `sheet` (optional sheet name). Idempotent on variant `sku`/`barcode` = CODE. Price col → `mrp` + `base_price`. Response: `{dry_run, mapping, summary, rows[]}`. Images optional — use `upload_image` later per product. |
 | POST | `/catalog/products/{id}/upload_image/` | OWNER,STAFF | Multipart image |
 | POST | `/catalog/products/{id}/variants/` | OWNER,STAFF | Add variant |
 | GET | `/catalog/kits/` | all | Filter `school`, `school_class` |
 | POST/PATCH/DELETE | `/catalog/kits/{id}/items/` | OWNER,STAFF | Kit line items |
+
+### Navneet Excel column mapping
+
+| Excel | Catalog field |
+|-------|----------------|
+| `CODE` | `ProductVariant.sku` (+ `barcode`) |
+| `PRODUCT NAME` | `Product.name` |
+| Price (col D; often unlabeled) | `Product.mrp` and `Product.base_price` (same at import) |
+| — | `Product.publisher` default `Navneet` |
+| — | `Product.product_type` default `BOOK` (stationery keywords → `STATIONERY`) |
+| Sheets | `Sheet1` (header row), `Gujarati Mid` (headerless same layout); empty sheets ignored |
+
+---
+
+## CMS / Storefront
+
+| Method | Path | RBAC | Description |
+|--------|------|------|-------------|
+| GET | `/cms/storefront-settings/` | public | Singleton settings: `default_catalog_view` (`grid`\|`list`), `home_delivery_fee`, `free_delivery_threshold` (null=off), SLA strings (`sla_local_copy`, `sla_default_copy`, `sla_disclaimer`), `share_message_template`, `share_base_url`, `related_strategy`, `related_limit`, contact phone/email/address |
+| PATCH | `/cms/storefront-settings/` | OWNER,STAFF | Partial update settings (response includes `updated_at`) |
+| GET | `/cms/stats/` | public | Published home stats (`label`, `value`, `sort_order`); OWNER/STAFF see unpublished too |
+| CRUD | `/cms/stats/{id}/` | OWNER,STAFF write | Home stats |
+| GET | `/cms/how-it-works/` | public | Published how-it-works steps |
+| CRUD | `/cms/how-it-works/{id}/` | OWNER,STAFF write | Steps (`title`, `body`, `icon`, `sort_order`, `is_published`) |
+| GET | `/cms/faq/` | public | Published FAQ items |
+| CRUD | `/cms/faq/{id}/` | OWNER,STAFF write | FAQ (`question`, `answer`, `sort_order`, `is_published`) |
+| GET | `/cms/pages/` | public | Published CMS pages (list omits `body`) |
+| GET | `/cms/pages/{slug}/` | public | Published page detail by slug (unpublished → 404 for public) |
+| CRUD | `/cms/pages/{slug}/` | OWNER,STAFF write | Pages (`slug`, `page_type`, `title`, `body`, `is_published`, `sort_order`). `page_type`: `about\|careers\|blog\|contact\|shipping\|returns\|refunds\|payments\|process\|account_delete\|privacy\|terms\|other` |
+| GET | `/cms/pincode-estimate/?pincode=` | public | ETA: exact rule → longest prefix → SLA fallback. `{pincode, matched, source, min_days, max_days, label, sla_copy, sla_disclaimer}` |
+| CRUD | `/cms/pincode-rules/` | OWNER,STAFF | Pincode rules (`pincode` and/or `pincode_prefix`, `min_days`, `max_days`, `label`, `sort_order`, `is_active`) |
+
+Checkout (HOME): `delivery_fee = 0` when `subtotal >= free_delivery_threshold`; else `home_delivery_fee` from settings.
 
 ---
 
